@@ -167,7 +167,9 @@ finna.feed = (function() {
                           });
                         }
                     }
-
+					else {
+						holder.find(".carousel .carousel-hover-title").append(" »");
+					}
                     // Force refresh to make sure that the layout is ok
                     obj.slickGoTo(0, true);
                 }
