@@ -14,6 +14,12 @@ header {
     & ul.navbar-nav.language:nth-child(4) > li > a {
         padding-left: 9px;
     }
+    // reset finna margin
+    @media (min-width: @grid-float-breakpoint) {
+        & ul.navbar-nav.language.lang-1 {
+            margin-left: 0;
+        }
+    }
 }
 // fine-tune front page carousel layout
 .home-2 > .container {
@@ -81,7 +87,6 @@ header {
         overflow-x: hidden;
     }
 }
-
 @media (max-width: @screen-xs-max) {
     body {
         background-size: 260% auto;
@@ -140,14 +145,17 @@ header {
             margin-right: -15px;
         }
     }
-    header .navbar .dropdown .dropdown-menu li { 
-        min-width: 270px;
-        div.description {
-            padding-top: 2px;
+    header .navbar .dropdown .dropdown-menu { 
+        & li {
+            min-width: 260px;
+            max-width: 280px;
         }
-        a {
+        & li a {
             white-space: initial;
             padding: 9px 10px;
+        }
+        & li div.description {
+            padding-top: 2px;
         }
     }
     .searchLayout .introduction {

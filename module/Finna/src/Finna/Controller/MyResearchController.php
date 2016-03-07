@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) The National Library of Finland 2015.
+ * Copyright (C) The National Library of Finland 2015-2016.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -22,6 +22,7 @@
  * @category VuFind
  * @package  Controller
  * @author   Samuli Sillanpää <samuli.sillanpaa@helsinki.fi>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org   Main Site
  */
@@ -33,6 +34,7 @@ namespace Finna\Controller;
  * @category VuFind
  * @package  Controller
  * @author   Samuli Sillanpää <samuli.sillanpaa@helsinki.fi>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org   Main Site
  */
@@ -235,14 +237,40 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
             return $patron;
         }
         $catalog = $this->getILS();
+        $view = $this->createViewIfUnsupported('updateAddress', true);
+        if ($view) {
+            return $view;
+        }
+        $updateConfig = $catalog->checkFunction('updateAddress', $patron);
         $profile = $catalog->getMyProfile($patron);
+        $fields = [];
+        if (!empty($updateConfig['fields'])) {
+            foreach ($updateConfig['fields'] as $fieldConfig) {
+                list($label, $field) = explode(':', $fieldConfig);
+                $fields[$field] = ['label' => $label];
+            }
+        }
+        if (empty($fields)) {
+            $fields = [
+                'address1' => ['label' => 'Address'],
+                'zip' => ['label' => 'Zip'],
+                'city' => ['label' => 'City'],
+                'country' => ['label' => 'Country']
+            ];
+
+            if (false === $catalog->checkFunction('updateEmail', $patron)) {
+                $fields['email'] = ['label' => 'Email'];
+            }
+            if (false === $catalog->checkFunction('updatePhone', $patron)) {
+                $fields['phone'] = ['label' => 'Phone'];
+            }
+        }
+
         $view = $this->createViewModel();
+        $view->fields = $fields;
 
         if ($this->formWasSubmitted('address_change_request')) {
             $data = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            $data['old_address_line_1']
-                = isset($profile['address1']) ? $profile['address1'] : '';
-            $data['old_address_zip'] = isset($profile['zip']) ? $profile['zip'] : '';
 
             $config = $this->getILS()->getConfig('updateAddress', $patron);
             if (!isset($config['emailAddress'])) {
@@ -253,8 +281,8 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
             $recipient = $config['emailAddress'];
 
             $this->sendChangeRequestEmail(
-                $patron, $data, $recipient, 'Osoitteenmuutospyyntö',
-                'change-address'
+                $patron, $profile, $data, $fields, $recipient,
+                'Osoitteenmuutospyyntö', 'change-address'
             );
             $this->flashMessenger()
                 ->addSuccessMessage('request_change_done');
@@ -262,6 +290,7 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
         }
 
         $view->profile = $profile;
+        $view->config = $updateConfig;
         $view->setTemplate('myresearch/change-address-settings');
         return $view;
     }
@@ -315,8 +344,8 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
             $recipient = $config['emailAddress'];
 
             $this->sendChangeRequestEmail(
-                $patron, $data, $recipient, 'Viestiasetusten muutospyyntö',
-                'change-messaging-settings'
+                $patron,  $profile, $data, [], $recipient,
+                'Viestiasetusten muutospyyntö', 'change-messaging-settings'
             );
             $this->flashMessenger()
                 ->addSuccessMessage('request_change_done');
@@ -511,26 +540,43 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
     {
         $id = $this->params()->fromQuery('id', false);
         $key = $this->params()->fromQuery('key', false);
+        $type = $this->params()->fromQuery('type', false);
 
-        if ($id === false || $key === false) {
+        if ($id === false || $key === false || $type === false) {
             throw new \Exception('Missing parameters.');
         }
 
         $view = $this->createViewModel();
 
         if ($this->params()->fromQuery('confirm', false) == 1) {
-            $search = $this->getTable('Search')->select(['id' => $id])->current();
-            if (!$search) {
-                throw new \Exception('Invalid parameters.');
-            }
-            $user = $this->getTable('User')->getById($search->user_id);
+            if ($type == 'alert') {
+                $search
+                    = $this->getTable('Search')->select(['id' => $id])->current();
+                if (!$search) {
+                    throw new \Exception('Invalid parameters.');
+                }
+                $user = $this->getTable('User')->getById($search->user_id);
 
-            if ($key !== $search->getUnsubscribeSecret(
-                $this->getServiceLocator()->get('VuFind\HMAC'), $user
-            )) {
-                throw new \Exception('Invalid parameters.');
+                if ($key !== $search->getUnsubscribeSecret(
+                    $this->getServiceLocator()->get('VuFind\HMAC'), $user
+                )) {
+                    throw new \Exception('Invalid parameters.');
+                }
+                $search->setSchedule(0);
+            } else if ($type == 'reminder') {
+                $user = $this->getTable('User')->select(['id' => $id])->current();
+                if (!$user) {
+                    throw new \Exception('Invalid parameters.');
+                }
+                $dueDateTable = $this->getTable('due-date-reminder');
+                if ($key !== $dueDateTable->getUnsubscribeSecret(
+                    $this->getServiceLocator()->get('VuFind\HMAC'), $user, $user->id
+                )) {
+                    throw new \Exception('Invalid parameters.');
+                }
+                $user->finna_due_date_reminder = 0;
+                $user->save();
             }
-            $search->setSchedule(0);
             $view->success = true;
         } else {
             $view->unsubscribeUrl
@@ -704,15 +750,17 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
      * Send a change request message (e.g. address change) to the library
      *
      * @param array  $patron    Patron
+     * @param array  $profile   Patron profile
      * @param array  $data      Change data
+     * @param array  $fields    Form fields for address change request
      * @param string $recipient Email recipient
      * @param string $subject   Email subject
      * @param string $template  Email template
      *
      * @return void
      */
-    protected function sendChangeRequestEmail($patron, $data, $recipient, $subject,
-        $template
+    protected function sendChangeRequestEmail($patron, $profile, $data, $fields,
+        $recipient, $subject, $template
     ) {
         list($library, $username) = explode('.', $patron['cat_username']);
         $library = $this->translate("source_$library", null, $library);
@@ -734,7 +782,10 @@ class MyResearchController extends \VuFind\Controller\MyResearchController
             'username' => $patron['cat_username'],
             'name' => $name,
             'email' => $email,
-            'data' => $data
+            'patron' => $patron,
+            'profile' => $profile,
+            'data' => $data,
+            'fields' => $fields
         ];
         $renderer = $this->getViewRenderer();
         $message = $renderer->render("Email/$template.phtml", $params);

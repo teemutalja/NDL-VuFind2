@@ -49,6 +49,26 @@ class UtilController extends \VuFindConsole\Controller\UtilController
     }
 
     /**
+     * Sends due date reminders.
+     *
+     * @return \Zend\Console\Response
+     */
+    public function dueDateRemindersAction()
+    {
+        return $this->runService('Finna\DueDateReminders');
+    }
+
+    /**
+     * Encypt catalog passwords.
+     *
+     * @return \Zend\Console\Response
+     */
+    public function encryptCatalogPasswordsAction()
+    {
+        return $this->runService('Finna\EncryptCatalogPasswords');
+    }
+
+    /**
      * Anonymizes all the expired user accounts.
      *
      * @return \Zend\Console\Response
@@ -56,6 +76,16 @@ class UtilController extends \VuFindConsole\Controller\UtilController
     public function expireUsersAction()
     {
         return $this->runService('Finna\ExpireUsers');
+    }
+
+    /**
+     * Process unregistered online paymenets.
+     *
+     * @return \Zend\Console\Response
+     */
+    public function onlinePaymentMonitorAction()
+    {
+        return $this->runService('Finna\OnlinePaymentMonitor');
     }
 
     /**

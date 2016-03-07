@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) The National Library of Finland 2015.
+ * Copyright (C) The National Library of Finland 2015-2016.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -58,6 +58,49 @@ class Factory
     }
 
     /**
+     * Construct the console service for sending due date reminders.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return \FinnaConsole\Service\DueDateReminder
+     */
+    public static function getDueDateReminders(ServiceManager $sm)
+    {
+        $tableManager = $sm->get('VuFind\DbTablePluginManager');
+        $userTable = $tableManager->get('user');
+        $dueDateReminderTable = $tableManager->get('due-date-reminder');
+
+        $catalog = \Finna\Service\Factory::getILSConnection($sm);
+        $configReader = $sm->get('VuFind\Config');
+        $mailer = $sm->get('VuFind\Mailer');
+        $renderer = $sm->get('viewmanager')->getRenderer();
+        $loader = $sm->get('VuFind\RecordLoader');
+        $hmac = $sm->get('VuFind\HMAC');
+        $translator = $sm->get('VuFind\Translator');
+
+        return new DueDateReminders(
+            $userTable, $dueDateReminderTable, $catalog,
+            $configReader, $mailer, $renderer, $loader, $hmac, $translator
+        );
+    }
+
+    /**
+     * Construct the console service for encrypting catalog passwords.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return \FinnaConsole\Service\EncryptCatalogPasswords
+     */
+    public static function getEncryptCatalogPasswords(ServiceManager $sm)
+    {
+        $table = $sm->get('VuFind\DbTablePluginManager')
+            ->get('User');
+        $config = $sm->get('VuFind\Config')->get('config');
+
+        return new EncryptCatalogPasswords($table, $config);
+    }
+
+    /**
      * Construct the console service for anonymizing expired users accounts.
      *
      * @param ServiceManager $sm Service manager.
@@ -70,6 +113,29 @@ class Factory
             ->get('User');
 
         return new ExpireUsers($table);
+    }
+
+    /**
+     * Construct the console service for sending scheduled alerts.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return \FinnaConsole\Service\ScheduledAlerts
+     */
+    public static function getOnlinePaymentMonitor(ServiceManager $sm)
+    {
+        $catalog = \Finna\Service\Factory::getILSConnection($sm);
+        $tableManager = $sm->get('VuFind\DbTablePluginManager');
+        $transactionTable = $tableManager->get('transaction');
+        $userTable = $tableManager->get('user');
+        $configReader = $sm->get('VuFind\Config');
+        $mailer = $sm->get('VuFind\Mailer');
+        $viewManager = $sm->get('viewmanager');
+
+        return new OnlinePaymentMonitor(
+            $catalog, $transactionTable, $userTable,
+            $configReader, $mailer, $viewManager
+        );
     }
 
     /**
