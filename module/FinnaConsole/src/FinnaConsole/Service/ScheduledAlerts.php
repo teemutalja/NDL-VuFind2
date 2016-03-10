@@ -219,7 +219,7 @@ class ScheduledAlerts extends AbstractService
         $this->msg('  ' . implode(', ', $baseDirs));
         foreach ($baseDirs as $url) {
             $parts = parse_url($url);
-            list($institution, $rest) = explode('.', $parts['host']);
+            list($institution) = explode('.', $parts['host']);
             if ($institution == 'www') {
                 // Special case for www.finna.fi
                 $institution = 'national';
@@ -387,12 +387,6 @@ class ScheduledAlerts extends AbstractService
             $searchService = $this->serviceManager->get('VuFind\Search');
 
             $searchObject = $s->getSearchObject();
-            $finnaSearchObject = null;
-            if ($searchObject instanceof \Finna\Search\Minified) {
-                $finnaSearchObject = $searchObject;
-                $searchObject = $finnaSearchObject->getParentSO();
-            }
-
             if ($searchObject->cl != 'Solr') {
                 $this->err(
                     'Unsupported search class ' . $s->cl . ' for search ' . $s->id
@@ -404,24 +398,6 @@ class ScheduledAlerts extends AbstractService
             $dateConverter = new DateConverter();
             $params = new Params($options, $configLoader, $dateConverter);
             $params->deminify($searchObject);
-            if ($finnaSearchObject) {
-                $params->deminifyFinnaSearch($finnaSearchObject);
-            }
-
-            // Add daterange filter
-            $daterangeField = $params::SPATIAL_DATERANGE_FIELD;
-            $filters = $searchObject->f;
-            if (isset($filters[$daterangeField])) {
-                $req = new Parameters();
-                if ($finnaSearchObject && isset($finnaSearchObject->f_dty)) {
-                    $req->set("{$daterangeField}_type", $finnaSearchObject->f_dty);
-                }
-                $req->set(
-                    'filter',
-                    ["$daterangeField:" . $filters[$daterangeField][0]]
-                );
-                $params->initSpatialDateRangeFilter($req);
-            }
 
             $params->setLimit($limit);
             $params->setSort('first_indexed+desc');
