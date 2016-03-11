@@ -167,9 +167,6 @@ finna.feed = (function() {
                           });
                         }
                     }
-                    else {
-                        holder.find(".carousel").addClass("carousel-not-touch-device");
-                    }
                     // Force refresh to make sure that the layout is ok
                     obj.slickGoTo(0, true);
                 }
