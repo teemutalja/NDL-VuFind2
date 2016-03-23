@@ -327,6 +327,35 @@ form.navbar-form {
         }
     }
 }
+.main.template-dir-search.template-name-results {
+    & .checkboxFilter {
+        & .checkbox aside {
+            margin: -2px 0 5px 20px;
+            line-height: 1.7em;
+            & .iconlabel {
+                margin-right: 5px;
+            }
+            & .iconlabel::before {
+                padding-right: 2px;
+                display: inline-block;
+                margin-bottom: -3px;
+            }
+            & .iconlabel:last-child {
+//                margin-right: 3px;
+            }
+            @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+                & span:first-child {
+                    display: block;
+                }
+            }
+        }
+        & span.badge.cb-facet {
+            display: none;
+        }
+    }
+
+    }
+}
 .fa-facebook-button {
     &:before {
         font-size: 18px;
