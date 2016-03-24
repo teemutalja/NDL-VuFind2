@@ -48,7 +48,12 @@
     }
     $html .= '"><input type="checkbox" name="filter[]" value="'.$this->escapeHtmlAttr($current['filter']).'"
       '. ($current['selected'] ? 'checked="checked"' : '') .' id="'.$this->escapeHtmlAttr(str_replace(' ', '', $current['desc'])).'"
-      onclick="document.location.href=\''. ($current['selected'] ? $results->getUrlQuery()->removeFilter($current['filter']) : $results->getUrlQuery()->addFilter($current['filter'])).'\';" />'.$this->transEsc($current['desc']).'</label></div>';
+      onclick="document.location.href=\''. ($current['selected'] ? $results->getUrlQuery()->removeFilter($current['filter']) : $results->getUrlQuery()->addFilter($current['filter'])).'\';" />'.$this->transEsc($current['desc']);
+    $checkboxDescriptionTranslationVariable = str_replace(' ','_',strtolower($current['desc'].'_desc_html')) ;
+      if ( !$this->translationEmpty($checkboxDescriptionTranslationVariable) ) {
+           $html .= ' <div class="checkbox-label-description">'.$this->translate($checkboxDescriptionTranslationVariable).'</div>';
+      }
+      $html .= '</label></div>';
   }
 ?>
   <div class="checkboxFilter<?if($shown == 0):?> hidden<? endif; ?>"><?=$html ?></div>
