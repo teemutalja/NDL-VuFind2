@@ -1,1 +1,40 @@
 /* All custom less-code here */
+
+// fine-tune front page carousel layout
+.home-2 {
+    & .carousel .slick-prev, .carousel .slick-next {
+        width: 28px;
+        background-color: transparent;
+    }
+}
+
+// search result list pages
+.sidebar {
+    & .checkboxFilter span.badge.cb-facet {
+        display: none;
+    }
+    & .building-filter {
+        display: none;
+    }
+}
+
+// layout the info text of available online checkbox
+.main.template-dir-search.template-name-results {
+    & .checkboxFilter .checkbox .checkbox-label-description {
+        margin: 0 0 5px 20px;
+        line-height: 1.7em;
+        & .iconlabel {
+            margin-right: 5px;
+        }
+        & .iconlabel::before {
+            padding-right: 2px;
+            display: inline-block;
+            margin-bottom: -3px;
+        }
+        @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+            & .iconlabel:first-child {
+                display: block;
+            }
+        }
+    }
+}

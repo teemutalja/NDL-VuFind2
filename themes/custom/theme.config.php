@@ -1,6 +1,6 @@
 <?php
 return array(
-    'extends' => 'finna',
+    'extends' => 'national',
     'css' => array(
         'custom.css',
         'settings.css'
