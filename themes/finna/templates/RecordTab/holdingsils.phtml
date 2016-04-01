@@ -138,7 +138,6 @@
         </div>
       </div>
     <? if (!empty($holdings)): ?>
-      <? // N.B. The division to 3 + 2 cols is required for the table to be valid HTML ?>
       <div class="headers reservations-container col-sm-4 col-xs-5">
         <? if ($showSummary): ?>
           <? if (!empty($reservationsTotal)): ?>
@@ -152,7 +151,6 @@
       <div class="headers total-container col-sm-2 hidden-xs text-right">
         <?=$this->transEsc("shelf_location"); ?>
       </div>
-      <? if ($journal): ?><!-- <div class="headers"></div> --><? endif ?>
     <? endif; ?>
   </div>
 <? $holdingsGroup = 0; ?>
@@ -219,6 +217,17 @@
         $dialogTitle .= " - $titleLocation";
     }
   ?>
+  <? if ($holdingsGroup == 1 && $holdingsConfig = $this->ils()->getConfig('Holdings', [$this->driver->getUniqueId()])): ?>
+    <? if (!empty($holdingsConfig['extra_texts'])): ?>
+      <div class="holdings-container-heading row">
+        <div class="col-xs-12">
+          <? foreach ($holdingsConfig['extra_texts'] as $extraText): ?>
+            <div class="holdings-extra-text"><?=$this->translate($extraText, ['%%recordId%%' => $this->driver->getUniqueId()])?></div>
+          <? endforeach; ?>
+        </div>
+      </div>
+    <? endif; ?>
+  <? endif; ?>
   <div class="holdings-container-heading row">
     <div class="location col-sm-6 col-xs-6">
       <i class="fa fa-arrow-<?=$holdingsDetails == 'collapsed' ? 'right' : 'down'?>"></i> <?=$this->transEsc('location_' . $holding['location'], array(), $holding['location'])?>
