@@ -1,6 +1,41 @@
+/* begin prototyping */
+
+.masonry-wrapper > div {
+}
+.result-view-grid.results .record-container .grid-title {
+    opacity: 100;
+    text-align: left;
+    padding: 3px 5px 10px 4px;
+//    min-height: 50px;
+    box-shadow: none;
+    font-size: 13px;
+    white-space: nowrap;
+        & .title {
+        font-size: 1em;
+        font-weight: normal;
+        color: #aaa;
+        line-height: 1em;
+        & mark {
+            font-weight: normal;
+        }
+    }
+    & .dateyeartype {
+        color: #aaa;
+        font-size: 12px;
+        line-height: 1em; 
+        &:empty {
+            display: none;
+        }
+        & > div, & p {
+            display: inline;
+        }
+    }
+}
+
+/* end prototyping */
+
 /* All custom less-code here */
 
-<<<<<<< Updated upstream
 // fine-tune front page carousel layout
 .home-2 .carousel {
     & .carousel-header {
@@ -48,5 +83,3 @@
         }
     }
 }
-=======
->>>>>>> Stashed changes
