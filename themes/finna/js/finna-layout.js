@@ -668,11 +668,12 @@ finna.layout = (function() {
                 var holder = $(this);
                 var organisation = $(this).data('organisation');
                 var link = $(this).data('link');
+                var wrap = $(this).data('wrap');
                 getOrganisationPageLink(organisation, link, function(response) {
                     holder.toggleClass('done', true);
                     if (response) {
                         var data = response[organisation];
-                        if (link === '1') {
+                        if (wrap) {
                             holder.wrap($('<a/>').attr('href', data));
                         } else {
                             holder.html(data);
@@ -713,6 +714,7 @@ finna.layout = (function() {
         initHierarchicalFacet: initHierarchicalFacet,
         initJumpMenus: initJumpMenus,
         initMobileNarrowSearch: initMobileNarrowSearch,
+        initOrganisationPageLinks: initOrganisationPageLinks,
         initSecondaryLoginField: initSecondaryLoginField,
         init: function() {
             initScrollRecord();

@@ -1,6 +1,10 @@
 <!-- START of: finna - record/record-organisation-menu.phtml -->
 <? $currentSource = $this->driver->tryMethod('getDataSource');
    $mergedData = $this->driver->tryMethod('getMergedRecordData');
+   $eadOrLido = in_array($this->driver->getRecordType(), ['ead', 'lido']);
+   if ($organisationPageLink = $this->organisationInfo() && $organisationInfoId = $this->driver->getOrganisationInfoId()) {
+      $organisationPageLink = $eadOrLido ? 'wrap' : 'link';
+   }
 ?>
 <? $dedupData = $this->driver->getDedupData(); ?>
 <div class="recordProvidedBy">
@@ -12,7 +16,14 @@
     <? endif; ?>
   </h4>
   <ul class="<?=(!in_array($this->driver->getRecordType(), ['ead','lido','qdc'])) ? 'list-group organisations' : 'record-type organisations'?>">
-    <li class="record-organisation"><?=$this->transEsc("source_$currentSource", null, $currentSource) ?>
+    <li class="record-organisation">
+      <span<?=$organisationPageLink === 'wrap' ? (' class="organisation-page-link" data-organisation="' . $organisationInfoId . '" data-wrap="1"') : ''?>>
+        <?=$this->transEsc($eadOrLido
+           ? ('0/' . $this->driver->getOrganisationInfoId() . '/')
+           : "source_$currentSource",
+           null, $currentSource)
+        ?>
+      </span>
       <ul class="record-organisation-info">
       <? if (isset($currentSource['imageUrl'])): ?>
         <li><img src="<?=$currentSource['imageUrl']?>"/></li>
@@ -20,7 +31,7 @@
       <? if (isset($currentSource['moreinfoLink'])): ?>
         <li><a href="<?=$currentSource['moreinfoLink']?>"><?=$this->transEsc('More information about organisation')?></a></li>
       <? endif; ?>
-        <? if ($this->organisationInfo() && $organisationInfoId = $this->driver->getOrganisationInfoId()): ?><li class="organisation-page-link" data-organisation="<?=$organisationInfoId?>" data-link="1"></li><? endif; ?>
+        <? if ($organisationPageLink === 'link'): ?><li class="organisation-page-link" data-organisation="<?=$organisationInfoId?>" data-link="1"></li><? endif; ?>
         <li><a href="<?=$this->recordLink()->getActionUrl($this->driver, 'Feedback')?>" data-lightbox id="feedback-record"><i class="fa fa-send-feedback"></i> <?=$this->transEsc('Send feedback on record')?></a></li>
       </ul>
     </li>
