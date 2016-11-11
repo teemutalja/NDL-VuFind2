@@ -328,9 +328,22 @@ class OrganisationInfo implements \Zend\Log\LoggerAwareInterface
             $id = $item['finna']['finna_id'];
             $data = "{$url}?" . http_build_query(['id' => $id]);
             if ($link) {
+                $logo = null;
+                if (isset($response['items'][0]['logo'])) {
+                    $logos = $response['items'][0]['logo'];
+                    foreach (['small', 'medium'] as $size) {
+                        if (isset($logos[$size])) {
+                            $logo = $logos[$size];
+                            break;
+                        }
+                    }
+                }
+
                 $data = $this->viewRenderer->partial(
-                    'Helpers/organisation-page-link.phtml',
-                    ['url' => $data, 'label' => 'organisation_info_link']
+                    'Helpers/organisation-page-link.phtml', [
+                       'url' => $data, 'label' => 'organisation_info_link',
+                       'logo' => $logo
+                    ]
                 );
             }
             $result['items'][$id] = $data;
