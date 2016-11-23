@@ -1,13 +1,13 @@
 /*global VuFind,checkSaveStatuses,action*/
 finna.layout = (function() {
     var _fixFooterTimeout = null;
-    
+
     var initMap = function(map) {
         // Add zoom control with translated tooltips
         L.control.zoom({
             position:'topleft',
             zoomInTitle: VuFind.translate('map_zoom_in'),
-            zoomOutTitle: VuFind.translate('map_zoom_out')            
+            zoomOutTitle: VuFind.translate('map_zoom_out')
         }).addTo(map);
 
         // Enable mouseWheel zoom on click
@@ -16,7 +16,7 @@ finna.layout = (function() {
         });
         map.scrollWheelZoom.disable();
     };
-    
+
     var initResizeListener = function() {
         var intervalId = false;
         $(window).on("resize", function(e) {
@@ -462,7 +462,7 @@ finna.layout = (function() {
             $('.result-view-grid').addClass('touch-device');
         }
     };
-    
+
     var initImageCheck = function() {
         $(".image-popup-trigger img").each(function() {
             $(this).one("load",function() {
@@ -539,7 +539,7 @@ finna.layout = (function() {
             initToolTips($('.sidebar'));
             initMobileNarrowSearch();
             VuFind.lightbox.bind($('.sidebar'));
-            setupFacets();            
+            setupFacets();
         })
         .fail(function() {
             $container.find('.facet-load-indicator').addClass('hidden');
@@ -657,6 +657,8 @@ finna.layout = (function() {
                     if (response) {
                         var data = response[organisation];
                         holder.html(data);
+                        holder.closest('li.record-organisation').prepend(data).find('> a > div.link').remove();
+                        holder.find('> a > img.consortium-logo').remove();
                     }
                 });
             });
@@ -687,15 +689,15 @@ finna.layout = (function() {
     var initIframeEmbed = function(container) {
         if (typeof(container) == 'undefined') {
             container = $('body');
-        }        
+        }
         container.find('a[data-embed-iframe]').click(function(e) {
             if (typeof $.magnificPopup.instance !== 'undefined' && $.magnificPopup.instance.isOpen) {
-                // Close existing popup (such as image-popup) first without delay so that its 
+                // Close existing popup (such as image-popup) first without delay so that its
                 // state doesn't get confused by the immediate reopening.
                 $.magnificPopup.instance.st.removalDelay = 0;
                 $.magnificPopup.close();
             }
-            $.magnificPopup.open({        
+            $.magnificPopup.open({
                 type: 'iframe',
                 tClose: VuFind.translate('close'),
                 items: {
@@ -719,7 +721,7 @@ finna.layout = (function() {
             return false;
         });
     }
-    
+
     var my = {
         getOrganisationPageLink: getOrganisationPageLink,
         isTouchDevice: isTouchDevice,
@@ -731,7 +733,7 @@ finna.layout = (function() {
         initMobileNarrowSearch: initMobileNarrowSearch,
         initOrganisationPageLinks: initOrganisationPageLinks,
         initSecondaryLoginField: initSecondaryLoginField,
-        initIframeEmbed: initIframeEmbed, 
+        initIframeEmbed: initIframeEmbed,
         init: function() {
             initScrollRecord();
             initJumpMenus();
@@ -766,4 +768,3 @@ finna.layout = (function() {
 
     return my;
 })(finna);
-
